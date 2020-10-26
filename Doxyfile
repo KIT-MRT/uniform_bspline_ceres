@@ -1,0 +1,3 @@
+EXAMPLE_PATH = test
+IMAGE_PATH = ./
+USE_MDFILE_AS_MAINPAGE = ./doc/README_doxygen.md

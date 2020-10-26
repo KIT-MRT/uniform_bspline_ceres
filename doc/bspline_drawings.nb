@@ -1,0 +1,268 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.2' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      9468,        260]
+NotebookOptionsPosition[      8703,        242]
+NotebookOutlinePosition[      9046,        257]
+CellTagsIndexPosition[      9003,        254]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{"Remove", "[", "\"\<Global`*\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.746842621239334*^9, 
+  3.74684264101363*^9}},ExpressionUUID->"671152fd-9f23-42bf-b99c-\
+ba7c6a6322f9"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"style", "=", 
+   RowBox[{"{", 
+    RowBox[{"Boxed", "\[Rule]", "False"}], "}"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.746841891052608*^9, 
+  3.746841898706973*^9}},ExpressionUUID->"06af2dc1-1037-4db1-856c-\
+d4cf198c95f6"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"g1D", "=", 
+   RowBox[{"{", "\[IndentingNewLine]", 
+    RowBox[{"Red", ",", 
+     RowBox[{"Table", "[", 
+      RowBox[{
+       RowBox[{"Sphere", "[", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"i", ",", "0", ",", "0"}], "}"}], ",", "0.25"}], "]"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"i", ",", "0", ",", "10"}], "}"}]}], "]"}], ",", 
+     "\[IndentingNewLine]", "Black", ",", 
+     RowBox[{"Tube", "[", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"0", ",", "0", ",", "0"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"10", ",", "0", ",", "0"}], "}"}]}], "}"}], "]"}]}], "}"}]}],
+   ";"}], "\[IndentingNewLine]", 
+ RowBox[{"g1D", "=", 
+  RowBox[{"Graphics3D", "[", 
+   RowBox[{"g1D", ",", "style", ",", 
+    RowBox[{"ViewPoint", "\[Rule]", "Top"}]}], "]"}]}]}], "Input",
+ CellChangeTimes->{{3.746841412106964*^9, 3.746841541404029*^9}, {
+  3.746841878332348*^9, 3.746841940524654*^9}, {3.7468420416691628`*^9, 
+  3.74684205940417*^9}, {3.7468426855192537`*^9, 3.74684269033354*^9}, {
+  3.746842721967367*^9, 
+  3.746842723310226*^9}},ExpressionUUID->"bc111b05-9aff-410d-be0a-\
+e51125c4b55c"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"numX", "=", "10"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"numY", "=", "7"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"g2D", "=", 
+   RowBox[{"{", "\[IndentingNewLine]", 
+    RowBox[{"Red", ",", 
+     RowBox[{"Table", "[", 
+      RowBox[{
+       RowBox[{"Sphere", "[", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"i", ",", "j", ",", "0"}], "}"}], ",", "0.25"}], "]"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"i", ",", "0", ",", "numX"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"j", ",", "0", ",", "numY"}], "}"}]}], "]"}], ",", 
+     "\[IndentingNewLine]", "Black", ",", 
+     RowBox[{"Table", "[", 
+      RowBox[{
+       RowBox[{"Tube", "[", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"{", 
+           RowBox[{"0", ",", "i", ",", "0"}], "}"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"numX", ",", "i", ",", "0"}], "}"}]}], "}"}], "]"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"i", ",", "0", ",", "numY"}], "}"}]}], "]"}], ",", 
+     "\[IndentingNewLine]", "Yellow", ",", 
+     RowBox[{"Table", "[", 
+      RowBox[{
+       RowBox[{"Tube", "[", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"{", 
+           RowBox[{"i", ",", "0", ",", "0"}], "}"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"i", ",", "numY", ",", "0"}], "}"}]}], "}"}], "]"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"i", ",", "0", ",", "numX"}], "}"}]}], "]"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"g2D", "=", 
+  RowBox[{"Graphics3D", "[", 
+   RowBox[{"g2D", ",", "style", ",", 
+    RowBox[{"ViewPoint", "\[Rule]", "Top"}]}], "]"}]}]}], "Input",
+ CellChangeTimes->{{3.7468415650661592`*^9, 3.746841576900633*^9}, {
+  3.746841608155637*^9, 3.746841692682952*^9}, {3.746841909332884*^9, 
+  3.746841980180018*^9}, {3.746842076037354*^9, 3.746842081350762*^9}, {
+  3.7468421132788363`*^9, 3.7468421271727324`*^9}, {3.746842425470338*^9, 
+  3.746842467455495*^9}, {3.746842503174582*^9, 3.746842562077853*^9}, {
+  3.746842670591641*^9, 3.746842674192556*^9}, {3.746842726215102*^9, 
+  3.7468427281023283`*^9}},ExpressionUUID->"837a552e-e695-4545-be62-\
+228faf076912"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"numX", "=", "5"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"numY", "=", "3"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"numZ", "=", "2"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"rSphere", "=", "0.15"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"rTubes", "=", "0.025"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"g3D", "=", 
+   RowBox[{"{", "\[IndentingNewLine]", 
+    RowBox[{"Red", ",", 
+     RowBox[{"Table", "[", 
+      RowBox[{
+       RowBox[{"Sphere", "[", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"i", ",", "j", ",", "k"}], "}"}], ",", "rSphere"}], "]"}], 
+       ",", 
+       RowBox[{"{", 
+        RowBox[{"i", ",", "0", ",", "numX"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"j", ",", "0", ",", "numY"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"k", ",", "0", ",", "numZ"}], "}"}]}], "]"}], ",", 
+     "\[IndentingNewLine]", "Black", ",", 
+     RowBox[{"Table", "[", 
+      RowBox[{
+       RowBox[{"Tube", "[", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{"0", ",", "i", ",", "j"}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{"numX", ",", "i", ",", "j"}], "}"}]}], "}"}], ",", 
+         "rTubes"}], "]"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"i", ",", "0", ",", "numY"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"j", ",", "0", ",", "numZ"}], "}"}]}], "]"}], ",", 
+     "\[IndentingNewLine]", "Yellow", ",", 
+     RowBox[{"Table", "[", 
+      RowBox[{
+       RowBox[{"Tube", "[", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{"i", ",", "0", ",", "j"}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{"i", ",", "numY", ",", "j"}], "}"}]}], "}"}], ",", 
+         "rTubes"}], "]"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"i", ",", "0", ",", "numX"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"j", ",", "0", ",", "numZ"}], "}"}]}], "]"}], ",", 
+     "\[IndentingNewLine]", "Green", ",", 
+     RowBox[{"Table", "[", 
+      RowBox[{
+       RowBox[{"Tube", "[", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{"i", ",", "j", ",", "0"}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{"i", ",", "j", ",", "numZ"}], "}"}]}], "}"}], ",", 
+         "rTubes"}], "]"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"i", ",", "0", ",", "numX"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"j", ",", "0", ",", "numY"}], "}"}]}], "]"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"g3D", "=", 
+  RowBox[{"Graphics3D", "[", 
+   RowBox[{"g3D", ",", 
+    RowBox[{"Boxed", "\[Rule]", "False"}]}], "]"}]}]}], "Input",
+ CellChangeTimes->{{3.746841706674902*^9, 3.746841860915285*^9}, {
+  3.7468419525179768`*^9, 3.7468419890855227`*^9}, {3.746842091261818*^9, 
+  3.746842094541253*^9}, {3.746842140309202*^9, 3.746842144133243*^9}, {
+  3.746842214535387*^9, 3.746842265365761*^9}, {3.746842295926188*^9, 
+  3.746842361078485*^9}, {3.746842731927271*^9, 
+  3.746842733006604*^9}},ExpressionUUID->"db7efe9e-5e17-40c5-889c-\
+04a2bd6851ea"],
+
+Cell[BoxData[{
+ RowBox[{"Export", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"NotebookDirectory", "[", "]"}], "<>", 
+    "\"\<1d_smoothing.png\>\""}], ",", "g1D", ",", 
+   RowBox[{"ImageResolution", "\[Rule]", "70"}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Export", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"NotebookDirectory", "[", "]"}], "<>", 
+    "\"\<2d_smoothing.png\>\""}], ",", "g2D", ",", 
+   RowBox[{"ImageResolution", "\[Rule]", "70"}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Export", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"NotebookDirectory", "[", "]"}], "<>", 
+    "\"\<3d_smoothing.png\>\""}], ",", "g3D", ",", 
+   RowBox[{"ImageResolution", "\[Rule]", "70"}]}], "]"}]}], "Input",
+ CellChangeTimes->{{3.746842739151463*^9, 3.746842832070306*^9}, {
+  3.746842958128091*^9, 3.746842964702692*^9}, {3.746842995136763*^9, 
+  3.746843001063203*^9}, {3.746843468297144*^9, 3.7468434718402147`*^9}, {
+  3.74684352599504*^9, 3.746843526952784*^9}, {3.7468435594350147`*^9, 
+  3.746843566050474*^9}},ExpressionUUID->"3e7b0258-c7ce-428a-bc97-\
+2513e89d3931"]
+},
+WindowSize->{1918, 1051},
+WindowMargins->{{Automatic, -1919}, {1, Automatic}},
+FrontEndVersion->"11.2 for Linux x86 (64-bit) (September 10, 2017)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 199, 4, 31, "Input",ExpressionUUID->"671152fd-9f23-42bf-b99c-ba7c6a6322f9"],
+Cell[760, 26, 260, 7, 31, "Input",ExpressionUUID->"06af2dc1-1037-4db1-856c-d4cf198c95f6"],
+Cell[1023, 35, 1191, 31, 101, "Input",ExpressionUUID->"bc111b05-9aff-410d-be0a-e51125c4b55c"],
+Cell[2217, 68, 2190, 55, 170, "Input",ExpressionUUID->"837a552e-e695-4545-be62-228faf076912"],
+Cell[4410, 125, 3209, 87, 262, "Input",ExpressionUUID->"db7efe9e-5e17-40c5-889c-04a2bd6851ea"],
+Cell[7622, 214, 1077, 26, 78, "Input",ExpressionUUID->"3e7b0258-c7ce-428a-bc97-2513e89d3931"]
+}
+]
+*)
+

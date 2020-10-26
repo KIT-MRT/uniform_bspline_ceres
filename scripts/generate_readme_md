@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+
+import os
+import re
+
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
+input_file = os.path.join(script_dir, "..", "doc/README_doxygen.md")
+
+with open(input_file) as f:
+    readme = f.read()
+
+# Replace math syntax.
+replacements = {
+    r'\f[': r'```math', r'@f[': r'```math',
+    r'\f]': r'```', r'@f]': r'```'}
+
+rep = dict((re.escape(k), v) for k, v in replacements.items())
+pattern = re.compile("|".join(rep.keys()))
+readme = pattern.sub(lambda m: rep[re.escape(m.group(0))], readme)
+
+string_patterns = [r'\\f\$(.*?)\\f\$', r'@f\$(.*?)@f\$']
+for string_pattern in string_patterns:
+    pattern = re.compile(string_pattern)
+    readme = pattern.sub(lambda m: '$`' + m.group(1) + '`$', readme)
+
+# Embed code snippets.
+readme_new = [
+    '<!---',
+    'This file is auto-generated. To not edit this file. Use the file doc/README_doxygen.md instead.',
+    'Then regenerate this file by running the script \'{}\''.format(os.path.basename(__file__)),
+    '--->']
+for l in readme.splitlines():
+    if not l.startswith('\snippet'):
+        readme_new += [l]
+        continue
+
+    elements = l.split(' ')
+    if len(elements) != 3:
+        print('Unknown snippet found: ' + l)
+        continue
+
+    source_filename = elements[1]
+    tag_name = elements[2]
+    tag_comment = '//! [' + tag_name + ']'
+
+    # Replace snippet with code.
+    with open(os.path.join(script_dir, '..', 'test', source_filename)) as f:
+        append = False
+        for src_line in f.read().splitlines():
+            if tag_comment in src_line:
+                if not append:
+                    readme_new += ["```cpp"]
+                    append = True
+                    continue
+                else:
+                    readme_new += ["```"]
+                    break
+
+            if append:
+                readme_new += [src_line]
+
+    if not append:
+        print("Cannot find snippet '{}' in file '{}'".format(tag_name, source_filename))
+        continue
+
+
+with open(os.path.join(script_dir, '..', 'README.md'), 'w') as f:
+    f.write("\n".join(readme_new))

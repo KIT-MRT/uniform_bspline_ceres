@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>uniform_bspline_ceres</name>
+  <version>1.0.0</version>
+  <description>A B-spline optimization library to optimize uniform B-spline with Ceres.</description>
+
+  <license>MRT</license>
+  <maintainer email="johannes.beck@kit.edu">Johannes Beck</maintainer>
+  <author email="johannes.beck@kit.edu">Johannes Beck</author>
+  <url type="repository">https://gitlab.mrt.uni-karlsruhe.de/MRT/develop/uniform_bspline_ceres</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>mrt_cmake_modules</build_depend>
+  <test_depend>gtest</test_depend>
+  <test_depend>benchmark</test_depend>
+
+  <depend>uniform_bspline</depend>
+  <depend>libceres-dev</depend>
+  <depend>eigen</depend>
+</package>

@@ -1,0 +1,106 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      3600,         98]
+NotebookOptionsPosition[      2943,         81]
+NotebookOutlinePosition[      3280,         96]
+CellTagsIndexPosition[      3237,         93]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{"Remove", "[", "\"\<Global`*\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.773630626592537*^9, 3.7736306359027443`*^9}},
+ CellLabel->"In[29]:=",ExpressionUUID->"f910b06c-09c9-447b-bed2-0366d677c1df"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"pts", "=", 
+   RowBox[{"{", 
+    RowBox[{"6", ",", "1", ",", "0", ",", "1", ",", "2", ",", "3", ",", "6"}],
+     "}"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"spline", "=", 
+  RowBox[{"BSplineFunction", "[", 
+   RowBox[{"pts", ",", 
+    RowBox[{"SplineDegree", "\[Rule]", "3"}], ",", 
+    RowBox[{"SplineKnots", "->", "\"\<Unclamped\>\""}]}], "]"}]}]}], "Input",
+ CellChangeTimes->{{3.773573388975196*^9, 3.7735734384295607`*^9}, {
+  3.773630422584638*^9, 3.7736304229266148`*^9}, {3.77363058035323*^9, 
+  3.773630599567256*^9}},
+ CellLabel->"In[30]:=",ExpressionUUID->"64ab932c-fb21-46fe-9a70-ab29b1c092ef"],
+
+Cell[BoxData[
+ RowBox[{"img", "=", 
+  RowBox[{"Plot", "[", 
+   RowBox[{
+    RowBox[{"spline", "[", "u", "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"u", ",", "0", ",", "1"}], "}"}], ",", 
+    RowBox[{"ImageSize", "\[Rule]", "400"}], ",", 
+    RowBox[{"AxesOrigin", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"0", ",", "0"}], "}"}]}]}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.773573431726123*^9, 3.7735734470531178`*^9}, {
+  3.773629414606495*^9, 3.773629417973174*^9}, {3.77362946552477*^9, 
+  3.773629470396893*^9}, {3.773630131160833*^9, 3.773630132317465*^9}, {
+  3.77363038871248*^9, 3.773630400886331*^9}},
+ CellLabel->"In[32]:=",ExpressionUUID->"57e5f516-e65f-491e-8c13-51a04cf9ad23"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"NotebookDirectory", "[", "]"}], "<>", 
+     "\"\<generator_example_spline.png\>\""}], ",", "img"}], "]"}], 
+  ";"}]], "Input",
+ CellChangeTimes->{{3.773629473541562*^9, 3.7736295045492153`*^9}, {
+   3.773630126896792*^9, 3.773630127197316*^9}, {3.773630641856985*^9, 
+   3.7736306535673323`*^9}, 3.77363070445601*^9, 
+   3.773630785920698*^9},ExpressionUUID->"5bbdb195-0d87-4cbf-bd4f-\
+01e6d9a679d3"],
+
+Cell[BoxData[
+ RowBox[{"FindMinimum", "[", 
+  RowBox[{
+   RowBox[{"spline", "[", "u", "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"u", ",", "0.2"}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.773630712759859*^9, 3.773630772491199*^9}},
+ CellLabel->"In[37]:=",ExpressionUUID->"78847e88-6b81-4b17-bac4-30c9ab3078bb"]
+},
+WindowSize->{808, 911},
+WindowMargins->{{Automatic, -1231}, {43, Automatic}},
+FrontEndVersion->"11.3 for Linux x86 (64-bit) (March 6, 2018)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 221, 3, 31, "Input",ExpressionUUID->"f910b06c-09c9-447b-bed2-0366d677c1df"],
+Cell[782, 25, 648, 14, 55, "Input",ExpressionUUID->"64ab932c-fb21-46fe-9a70-ab29b1c092ef"],
+Cell[1433, 41, 694, 15, 31, "Input",ExpressionUUID->"57e5f516-e65f-491e-8c13-51a04cf9ad23"],
+Cell[2130, 58, 489, 12, 31, "Input",ExpressionUUID->"5bbdb195-0d87-4cbf-bd4f-01e6d9a679d3"],
+Cell[2622, 72, 317, 7, 31, "Input",ExpressionUUID->"78847e88-6b81-4b17-bac4-30c9ab3078bb"]
+}
+]
+*)
+
