@@ -65,7 +65,6 @@ jobs:
         run: |
           python3 -m venv .venv
           source .venv/bin/activate
-          pip install "uniform_bspline @ git+https://github.com/KIT-MRT/uniform_bspline.git"
           pip install .[test]
 
       - name: Run Python tests
