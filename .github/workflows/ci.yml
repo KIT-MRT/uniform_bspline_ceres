@@ -25,7 +25,8 @@ jobs:
             libgtest-dev \
             libeigen3-dev \
             libboost-dev \
-            libceres-dev
+            libceres-dev \
+            libbenchmark-dev
 
       - name: Configure
         run: cmake -S . -B build -DBUILD_TESTS=ON
