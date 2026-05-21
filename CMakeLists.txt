@@ -23,7 +23,12 @@ if(NOT uniform_bspline_FOUND)
         GIT_REPOSITORY https://github.com/KIT-MRT/uniform_bspline.git
         GIT_TAG        remove_catkin_dep
     )
+    # Disable uniform_bspline's own tests when used as a sub-dependency
+    set(BUILD_TESTS_SAVED ${BUILD_TESTS})
+    set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(uniform_bspline)
+    # Restore for this project's own BUILD_TESTS option
+    set(BUILD_TESTS ${BUILD_TESTS_SAVED} CACHE BOOL "" FORCE)
 endif()
 
 # ---------------------------------------------------------------------------
