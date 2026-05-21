@@ -1,263 +1,344 @@
-<!---
-This file is auto-generated. To not edit this file. Use the file doc/README_doxygen.md instead.
-Then regenerate this file by running the script 'generate_readme_md'
---->
-# UNIFORM B-SPLINE CERES
+# uniform_bspline_ceres
 
-A B-spline optimization library to optimize uniform B-spline with ceres.
+[![CI](https://github.com/KIT-MRT/uniform_bspline_ceres/actions/workflows/ci.yml/badge.svg)](https://github.com/KIT-MRT/uniform_bspline_ceres/actions/workflows/ci.yml)
+[![GitHub release](https://img.shields.io/github/v/release/KIT-MRT/uniform_bspline_ceres)](https://github.com/KIT-MRT/uniform_bspline_ceres/releases)
+[![PyPI](https://img.shields.io/pypi/v/uniform_bspline_ceres)](https://pypi.org/project/uniform_bspline_ceres/)
+[![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+[![License: BSL-1.0](https://img.shields.io/badge/License-BSL_1.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt)
 
-## Usage
+A header-only C++ library for fitting and optimizing uniform B-splines using the [Ceres Solver](http://ceres-solver.org/). It builds on top of [uniform_bspline](https://github.com/KIT-MRT/uniform_bspline) and extends it with Ceres-compatible cost functors, enabling spline parameters — control points, evaluation positions, or both — to be optimized jointly with other variables in a non-linear least-squares problem.
 
-### Fitting a 1D spline to std::exp function.
+**Features:**
 
-In this example we build and solve a ceres problem of fitting a 1D spline to a test function. The test function will be $` f(x) = \exp(2x) `$. We use a 1D spline with degree of three.
+- **Evaluator** — Evaluate a spline at a *fixed* parameter position inside a Ceres cost function (sparse, autodiff-friendly).
+- **Generator** — Generate a fully auto-differentiable spline object when the parameter position is itself an optimization variable.
+- **Smoothness priors** — Exact 1-D integral-based smoothness residuals and grid-based approximations for N-D splines.
+- **Header-only** — just add to your include path, no compilation required.
+- **Python bindings** — easily install via pybind11.
+
+## Quick Start
+
+### C++
+
+#### Fitting a 1-D spline with the Evaluator API
 
 ```cpp
+#include <uniform_bspline_ceres/uniform_bspline_ceres.hpp>
+
 using Spline = ubs::UniformBSpline<double, 3, double, double, std::vector<double>>;
-```
 
-We begin with defining the residual function:
-
-```cpp
 class ExponentialResidual {
 public:
-    explicit ExponentialResidual(const ubs::UniformBSplineCeresEvaluator<Spline>& splineEvaluator, double measurement)
-            : splineEvaluator_(splineEvaluator), measurement_{measurement} {
-    }
+    ExponentialResidual(const ubs::UniformBSplineCeresEvaluator<Spline>& eval, double meas)
+        : eval_(eval), meas_(meas) {}
 
     template <typename T>
     bool operator()(const T* c0, const T* c1, const T* c2, const T* c3, T* residual) const {
-        splineEvaluator_.evaluate(c0, c1, c2, c3, residual);
-        *residual -= T(measurement_);
+        eval_.evaluate(c0, c1, c2, c3, residual);
+        *residual -= T(meas_);
         return true;
     }
-
 private:
-    ubs::UniformBSplineCeresEvaluator<Spline> splineEvaluator_;
-    double measurement_;
+    ubs::UniformBSplineCeresEvaluator<Spline> eval_;
+    double meas_;
 };
+
+// Build and solve
+std::vector<double> controlPoints(20, 0.0);
+Spline spline(controlPoints);
+ubs::UniformBSplineCeres<Spline> splineCeres(spline);
+
+ceres::Problem problem;
+std::vector<double*> params(splineCeres.getNumPointParameterPointers());
+for (int i = 0; i < numMeas; ++i) {
+    double x = double(i) / numMeas;
+    const auto data = splineCeres.getPointData(x);
+    splineCeres.fillParameterPointers(data, params.begin(), params.end());
+    auto* cost = new ceres::AutoDiffCostFunction<ExponentialResidual, 1, 1, 1, 1, 1>(
+        new ExponentialResidual(splineCeres.getEvaluator(data), std::exp(2.0 * x)));
+    problem.AddResidualBlock(cost, nullptr, params);
+}
+ceres::Solver::Options opts;
+ceres::Solver::Summary summary;
+ceres::Solve(opts, &problem, &summary);
 ```
 
-Our parameters of the cost functor are the control points. As we use a spline with degree of three, the order is four and we need four control points to evaluate the spline. Those are the input parameters. Using the control points we evaluate the spline using the splineEvaluator. The result will be stored in residual. The residual is the distance between the spline value and the measurement. 
+#### Optimizing the evaluation position with the Generator API
 
-Now we need to create the ceres problem. At first the number of control points needs to be specified. In this example we are using 20 control points all set to zero.
-
-```cpp
-    std::vector<double> controlPoints(20, 0.0);
-    Spline spline(controlPoints);
-    ubs::UniformBSplineCeres<Spline> splineCeres(spline);
-```
-
-The next step is to setup the problem.
-
-```cpp
-    std::vector<double*> parameterPointers(splineCeres.getNumPointParameterPointers());
-    ceres::Problem problem;
-
-    for (int i = 0; i < numMeasurements; ++i) {
-        const double posX = double(i) / double(numMeasurements);
-        const double posY = std::exp(posX * 2.0);
-
-        const auto data = splineCeres.getPointData(posX);
-        splineCeres.fillParameterPointers(data, parameterPointers.begin(), parameterPointers.end());
-        ubs::UniformBSplineCeresEvaluator<Spline> evaluator = splineCeres.getEvaluator(data);
-
-        auto* costFunctor = new ceres::AutoDiffCostFunction<ExponentialResidual, 1, 1, 1, 1, 1>(
-            new ExponentialResidual(evaluator, posY));
-
-        problem.AddResidualBlock(costFunctor, nullptr, parameterPointers);
-    }
-```
-
-We generate a residual for each measurement. What we would like to do is to evaluate the spline in the residual. This is where `splineCeres` helps. First, one need the evaluation data at a single point by calling `getPointData()`. The returned data is used to retrieve the parameter pointers and the evaluator. The parameter pointers are passed to ceres during the call to `AddResidualBlock`. The spline evaluator is passed to the residual and used to calculate the spline value during optimization. The number of parameter blocks is the order of the spline, each of which has one dimension. So the `AutoDiffCostFunction` parameter block sizes are 1 for the output residual and 4 times 1 for the control points.
-
-The last step is solving the problem:
-
-```cpp
-    ceres::Solver::Options options;
-    options.minimizer_progress_to_stdout = true;
-    ceres::Solver::Summary summary;
-    ceres::Solve(options, &problem, &summary);
-    std::cout << summary.FullReport() << std::endl;
-```
-
-To see the full example see [evaluator_example.cpp](test/evaluator_example.cpp).
-
-### Optimizing a spline with variable evaluation position
-In the last example the evaluation point of the spline has to be known before and was fixed during solving the problem. In this section we well see an example on how a problem can be solved, if the evaluation point is not fixed during optimization.
-
-As an example we search for a minimum of a 1D -> 1D spline while keeping the control points fixed. The spline will look like this:
-
-![Example Spline](doc/generator_example_spline.png)
-
-First we need to define the type of our spline.
+Use the Generator API when the control points are fixed and only the query position `t`
+needs to be optimised — for example to invert a spline or find the closest point on a curve:
 
 ```cpp
 template <typename T>
 using Spline = ubs::UniformBSpline<T, 3, T, T, std::vector<T>>;
-```
 
-This is a 1D -> 1D spline of order of 3 where the control points are stored in a `std::vector`. The spline is templated as we need to use it for building the problem, where `T` is `double`, and in an autodiff cost function, where `T` is `ceres::Jet`. 
+// Suppose spline is already fitted; we want t* such that spline(t*) ≈ target.
+double target = 3.5;
+double t = 0.5;  // initial guess
 
-Next we define our residual function:
-
-```cpp
-class SplineMinimumResidual {
-public:
-    explicit SplineMinimumResidual(const ubs::UniformBSplineCeresGenerator<Spline>& generator, int numControlPoints)
-            : generator_(generator), numControlPoints_(numControlPoints) {
-    }
-
-    template <typename T>
-    bool operator()(const T* const* paramPointers, T* residual) const {
-        const T* const* controlPoints = paramPointers;
-        const T& pos = *(paramPointers[numControlPoints_]);
-
-        auto spline = generator_.generate(controlPoints);
-        residual[0] = spline.evaluate(pos);
-        residual[1] = spline.derivative(pos, 1);
+struct PositionResidual {
+    ubs::UniformBSplineCeresGenerator<Spline> gen;
+    double target;
+    bool operator()(double const* const* params, double* residual) const {
+        // params[0..order-1] are control points, params[order] is t
+        auto s = gen(params, params + gen.numControlPointBlocks());
+        residual[0] = s.evaluate(*params[gen.numControlPointBlocks()]) - target;
         return true;
     }
-
-private:
-    ubs::UniformBSplineCeresGenerator<Spline> generator_;
-    int numControlPoints_;
 };
+
+ubs::UniformBSplineCeres<Spline<double>> splineCeres(fittedSpline);
+const auto data = splineCeres.getRangeData(0.0, 1.0);
+auto gen = splineCeres.getGenerator<Spline>(data);
+
+ceres::Problem problem;
+std::vector<double*> params;
+splineCeres.fillParameterPointers(data, std::back_inserter(params));
+params.push_back(&t);
+
+auto* cost = new ceres::DynamicAutoDiffCostFunction<PositionResidual>(
+    new PositionResidual{gen, target});
+for (int i = 0; i < static_cast<int>(params.size()); ++i)
+    cost->AddParameterBlock(1);
+cost->SetNumResiduals(1);
+problem.AddResidualBlock(cost, nullptr, params);
+
+// Fix control points, only optimise t
+for (std::size_t i = 0; i + 1 < params.size(); ++i)
+    problem.SetParameterBlockConstant(params[i]);
+problem.SetParameterLowerBound(&t, 0, 0.0);
+problem.SetParameterUpperBound(&t, 0, 1.0);
+
+ceres::Solver::Options opts;
+ceres::Solver::Summary summary;
+ceres::Solve(opts, &problem, &summary);
+// t now holds t*
 ```
 
-The constructor takes the number of control points and a spline generator. A spline generator is used to generate an auto differentiable spline based on the control points in the cost function. To calculate the residual we first extract the control points parameter pointers and the evaluation point. Then a spline is generated using the generator. The generator returns a `ubs::UniformBSpline` object with a value type of type `T`. Now the spline can be used as it would be a regular spline. We evaluate two residuals, the value and its first derivative of the spline at `pos` and assign them to the residual vector. This function is minimal, when the spline value is minimal and the derivative is zero.
+#### Smoothness / Regularization
 
-The next step is to initialize a spline, create the ceres problem and solve it.
-
-So first let us initialize a spline and ceres spline object with seven control points:
+Add an integral-based smoothness prior on the first derivative:
 
 ```cpp
-    std::vector<double> controlPoints{6.0, 1.0, 0.0, 1.0, 2.0, 3.0, 6.0};
-    Spline<double> spline(controlPoints);
-    ubs::UniformBSplineCeres<Spline<double>> splineCeres(spline);
-
-    double t = 0.8;
+const double weight = 1e-5;
+splineCeres.addSmoothnessResiduals<1>(problem, weight);
 ```
 
-`t` is the spline evaluation point which we would like to optimize. The initial value is set to `0.8`. Now need to get the parameter pointers and spline generator to build our residual. At first we need to get a range data object
+For N-D splines (grid of control points), use the grid-based approximation:
 
 ```cpp
-    const auto data = splineCeres.getRangeData(0.0, 1.0);
+splineCeres.addSmoothnessResidualsGrid<1>(problem, weight);
 ```
 
-Here our range is $` [0.0, 1.0] `$ as we would like to evaluate the spline in that range. The range highly influences the sparsity of the problem. If the range is the full range of the spline, all control points are depending on it. On the other hand, if the range is almost zero, the number of depending control points is only the order of the spline.
+### Python
 
-Now lets build the parameter vector using the range data:
+```python
+import uniform_bspline_ceres as ubsc
 
-```cpp
-    const int numControlPoints = splineCeres.getNumRangeParameterPointers(data);
-    std::vector<double*> parameterPointers(numControlPoints + 1);
+# Fit y = exp(2x) with a cubic (degree-3) spline
+fitter = ubsc.SplineFitter1d1d3(num_control_points=20)
+x = [i / 199 for i in range(200)]
+y = [2.718 ** (2 * xi) for xi in x]
+fitter.fit(x, y)
 
-    splineCeres.fillParameterPointers(data, parameterPointers.begin(), parameterPointers.begin() + numControlPoints);
-    parameterPointers.back() = &t;
+ctrl = fitter.get_control_points()   # list of fitted control points
+lb   = fitter.get_lower_bound()      # lower bound of the fitted range
+ub   = fitter.get_upper_bound()      # upper bound of the fitted range
+
+# Add smoothness regularization
+fitter.fit(x, y, smoothness_weight=1e-4)
+
+# Fit on a non-unit interval
+x2 = [-3 + 6 * i / 99 for i in range(100)]
+y2 = [xi ** 2 for xi in x2]
+fitter.fit(x2, y2, lower_bound=-3.0, upper_bound=3.0)
 ```
 
-We determine the number of control points. The total number of parameters for the cost functor is the number of control points plus one because of the spline evaluation position `t`. Then we fill the first part of the parameter vector with the control points and the last pointer with evaluation point.
+#### Finding the query position on a fitted spline
 
-Now lets create our cost function:
+After fitting, use `SplinePositionFinder` to invert the spline — i.e. find the parameter
+`t*` that maps to a given target value:
 
-```cpp
-    ubs::UniformBSplineCeresGenerator<Spline> generator = splineCeres.getGenerator<Spline>(data);
+```python
+import uniform_bspline_ceres as ubsc
 
-    auto costFunction = std::make_unique<ceres::DynamicAutoDiffCostFunction<SplineMinimumResidual>>(
-        new SplineMinimumResidual(generator, numControlPoints));
+# --- 1D → 1D: find t* such that spline(t*) ≈ target ---
+fitter = ubsc.SplineFitter1d1d3(num_control_points=20)
+x = [i / 199 for i in range(200)]
+y = [2.718 ** (2 * xi) for xi in x]   # y = exp(2x)
+fitter.fit(x, y)
 
-    for (int i = 0; i < numControlPoints; ++i) {
-        costFunction->AddParameterBlock(1);
-    }
-    costFunction->AddParameterBlock(1);
-    costFunction->SetNumResiduals(2);
+finder = ubsc.SplinePositionFinder1d1d3(
+    lower_bound=fitter.get_lower_bound(),
+    upper_bound=fitter.get_upper_bound(),
+    control_points=fitter.get_control_points(),
+)
+# Find t* such that spline(t*) ≈ exp(2 * 0.3)
+t_star = finder.find(target=2.718 ** 0.6, initial_t=0.5)
+print(t_star)   # ≈ 0.3
+
+# --- 1D → 3D: find t* on a curve closest to a 3D point ---
+finder_3d = ubsc.SplinePositionFinder1d3d3(
+    lower_bound=0.0,
+    upper_bound=1.0,
+    control_points=ctrl_matrix,   # (num_control_points, 3) numpy array
+)
+t_star = finder_3d.find(target=[0.5, 0.5, 0.5], initial_t=0.5)
 ```
 
-In order to get the spline generator needed for construct our residual, we call `ubs::UniformBSplineCeres::getGenerator`. The `UniformBSplineCeres::getGenerator` function takes the range data and a template template parameter of the spline. The passed spline must accept one template parameter value type. This is needed to create the correct spline during optimization, as it is not yet known.
+The naming convention is `SplinePositionFinderNdMd{Degree}`, mirroring the fitter classes.
+Available variants: `1d1d`, `1d3d`, `3d1d`, `3d2d`, each with degrees 1–5.
 
-Then the residual is generator and the parameter pointer dimensions are set. Each control point has a dimensionality of 1 and the evaluation point also has a dimension of 1. As we are using the spline value and its first derivative as residual, the residual dimension is 2.
+For the full usage guide see the **[documentation](https://kit-mrt.github.io/uniform_bspline_ceres)**.
 
-Now lets setup the problem:
+## Dependencies
 
-```cpp
-    ceres::Problem problem;
-    problem.AddResidualBlock(costFunction.release(), nullptr, parameterPointers);
+| Dependency | Version | Notes |
+|---|---|---|
+| CMake | >= 3.16 | required |
+| Eigen3 | >= 3.3 | required |
+| Ceres Solver | >= 2.0 | required |
+| uniform_bspline | >= 1.0.0 | required |
+| GTest | >= 1.10 | optional — C++ tests only |
+| Google Benchmark | >= 1.5 | optional — C++ tests only |
+| pybind11 | >= 2.11 | optional — Python bindings only |
+| Python | >= 3.8 | optional — Python bindings only |
+| numpy | >= 1.21 | optional — Python bindings only |
+
+### Option A — shell script (Ubuntu/Debian)
+
+```bash
+./install_dependencies.sh                  # core only (includes uniform_bspline)
+./install_dependencies.sh --tests          # core + C++ test dependencies
+./install_dependencies.sh --python         # core + Python bindings
+./install_dependencies.sh --tests --python # all of the above
 ```
 
-As the spline can only be evaluated in the interval $` [0.0, 1.0] `$, we set a lower and upper bound accordingly:
+### Option B — vcpkg (cross-platform: Linux / macOS / Windows)
 
-```cpp
-    problem.SetParameterLowerBound(&t, 0, 0.0);
-    problem.SetParameterUpperBound(&t, 0, 1.0);
+```bash
+vcpkg install                                                # core only (includes uniform_bspline)
+vcpkg install --x-feature=tests                              # core + C++ test dependencies
+vcpkg install --x-feature=python-bindings                    # core + Python bindings
+vcpkg install --x-feature=tests --x-feature=python-bindings  # all of the above
 ```
 
-Also we would like to fix all control points. This can be done by using the `ubs::UniformBSpline::getControlPointsContainer`. The container provides a method of iteration over all control points.
-
-```cpp
-    spline.getControlPointsContainer().forEach([&](double& c) { problem.SetParameterBlockConstant(&c); });
+Then configure CMake with:
+```bash
+cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 ```
 
-As a last step the problem is solved.
+### Option C — Dev Container (zero-setup)
 
-```cpp
-    ceres::Solver::Options options;
-    options.minimizer_progress_to_stdout = true;
-    options.parameter_tolerance = 1e-15;
-    options.gradient_tolerance = 1e-15;
-    options.function_tolerance = 1e-15;
+Open in VS Code → **Reopen in Container**.
+All dependencies (core, GTest, and Python bindings) are installed automatically via `.devcontainer/devcontainer.json`.
 
-    ceres::Solver::Summary summary;
-    ceres::Solve(options, &problem, &summary);
-    std::cout << summary.FullReport() << std::endl;
+## Installation
+
+### C++ -- CMake
+
+```bash
+git clone https://github.com/KIT-MRT/uniform_bspline_ceres.git  # clone the repository
+cd uniform_bspline_ceres
+cmake -S . -B build                                              # configure
+cmake --build build --parallel $(nproc)                          # compile
+sudo cmake --install build                                       # install system-wide
 ```
 
-Using the control points above the minimum will be `0.25`.
-
-To see the full example see [generator_example.cpp](test/generator_example.cpp).
-
-### Smoothing / Regularization
-
-There are different ways of expressing smoothness of a function. One way is a integral over the absolute function or its derivative:
-```math
-s_i = \int_0^1 \lVert f_i^{(n)}(\mathbf{x}) \rVert^2 \mathbf{dx}
+To also build the Doxygen HTML documentation:
+```bash
+cmake -S . -B build -DBUILD_DOCUMENTATION=ON  # configure with docs enabled
+cmake --build build --target docs             # generate documentation
 ```
 
-In the one dimensional case this expression can be can efficiently integrated in a least-squares problem, as one can exactly 
+CMake options:
 
-```math
-s_i = \int_0^1 \lVert f_i^{(n)}(x) \rVert^2 dx = \sum_i^{N-o} \lVert s \mathbf{B}^{1/2} \mathbf{P}_{i:i+o} \rVert^2 
-``` 
+| Option | Default | Description |
+|---|---|---|
+| `BUILD_TESTS` | `OFF` | Build C++ GTest tests |
+| `BUILD_PYTHON_BINDINGS` | `OFF` | Build Python (pybind11) bindings |
+| `BUILD_DOCUMENTATION` | `OFF` | Build Doxygen documentation |
 
-This means the integral can be expressed as a sum of a matrix matrix product where $` s \mathbf{B}^{1/2} `$ can be precomputed and $` \mathbf{P}_{i:i+o} `$ are the control points from $` i `$ to $` i + o`$ and $` o `$ is the order of the spline. 
-
-For the one-dimensional case the formula above can be used directly. The control points are lay out in a line.  
-
-![1D Smoothing](doc/1d_smoothing.png)
-
-Here the red dots are the control points and the black line is the one-dimensional spline which is used for smoothing.
-
-In the two-dimensional case, such a integral can also be solved and efficiently integrated into an NLS problem.
-
-For higher order splines an approximation is implemented using the one-dimensional case. E.g. in the two-dimensional case the control points are lay out in a grid.
-
-![2D Smoothing](doc/2d_smoothing.png)
-
-To smooth such a spline one create a one-dimensional spline in each grid direction (horizontal and vertical). Those splines are shown in black and yellow.
-
-In the three-dimensional case the control points are organized in a three-dimensional grid. Here one-dimensional splines in each directions are build and used for smoothing (black, yellow and green lines).
-
-![3D Smoothing](doc/3d_smoothing.png)
-
-To add the exact smoothing residuals to the ceres problem a call to UniformBSplineCeres::addSmoothnessResiduals is sufficient.
-```cpp
-    const double weight = 1e-5;
-    splineCeres.addSmoothnessResiduals<1>(problem, weight);
+Then in your own project:
+```cmake
+find_package(uniform_bspline_ceres REQUIRED)
+target_link_libraries(my_target PRIVATE uniform_bspline_ceres::uniform_bspline_ceres)
 ```
 
-The first argument is the ceres problem to which the cost functions are added. The second one is the weight used to scale the smoothness. The higher the weight the smoother the function will be. The template parameter is the derivative of the function which is used for smoothing.
+### C++ -- FetchContent (no install needed)
 
-To add the grid based approximation one have to call UniformBSplineCeres::addSmoothnessResidualsGrid.
-```cpp
-    splineCeres.addSmoothnessResidualsGrid<1>(problem, weight);
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+    uniform_bspline_ceres
+    GIT_REPOSITORY https://github.com/KIT-MRT/uniform_bspline_ceres.git
+    GIT_TAG        main
+)
+FetchContent_MakeAvailable(uniform_bspline_ceres)
+target_link_libraries(my_target PRIVATE uniform_bspline_ceres::uniform_bspline_ceres)
+```
+
+### Python -- pip
+
+#### 1. Install from PyPI
+
+```bash
+pip install uniform_bspline_ceres
+```
+
+#### 2. Install from GitHub
+
+```bash
+pip install git+https://github.com/KIT-MRT/uniform_bspline_ceres.git
+```
+
+#### 3. Install from a local clone
+
+```bash
+git clone https://github.com/KIT-MRT/uniform_bspline_ceres.git
+cd uniform_bspline_ceres
+pip install .
+```
+
+## Testing
+
+### C++
+
+```bash
+cmake -S . -B build -DBUILD_TESTS=ON
+cmake --build build --parallel $(nproc)
+ctest --test-dir build --output-on-failure
+```
+
+### Python
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install .[test]
+pytest tests/python/
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+BSL-1.0 — see [LICENSE](LICENSE).
+
+## Citation
+
+If you use this library in academic work, please cite:
+
+```bibtex
+@article{Beck2021_1000131090,
+    author       = {Beck, Johannes},
+    year         = {2021},
+    title        = {Camera Calibration with Non-Central Local Camera Models},
+    doi          = {10.5445/IR/1000131090},
+    publisher    = {{Karlsruher Institut für Technologie (KIT)}},
+    school       = {Karlsruher Institut für Technologie (KIT)}
+}
 ```

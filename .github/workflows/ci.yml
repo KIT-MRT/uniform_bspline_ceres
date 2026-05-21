@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  # -------------------------------------------------------------------------
+  # C++ build and test
+  # -------------------------------------------------------------------------
+  build-and-test:
+    name: C++ build & test (Ubuntu)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            libgtest-dev \
+            libeigen3-dev \
+            libceres-dev
+
+      - name: Install lcov
+        run: sudo apt-get install -y lcov
+
+      - name: Configure
+        run: cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+
+      - name: Build
+        run: cmake --build build --parallel $(nproc)
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          gcov: true
+
+  # -------------------------------------------------------------------------
+  # Python bindings build and test
+  # -------------------------------------------------------------------------
+  python-test:
+    name: Python bindings & pytest (Ubuntu)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            libeigen3-dev \
+            libceres-dev \
+            pybind11-dev \
+            python3-dev \
+            python3-pip \
+            python3-venv \
+            python3-numpy
+
+      - name: Install Python package
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install "uniform_bspline @ git+https://github.com/KIT-MRT/uniform_bspline.git"
+          pip install .[test]
+
+      - name: Run Python tests
+        run: |
+          source .venv/bin/activate
+          pytest tests/python/ -v
+
+  # -------------------------------------------------------------------------
+  # Build and deploy Doxygen HTML to GitHub Pages
+  # -------------------------------------------------------------------------
+  docs:
+    name: Doxygen → GitHub Pages
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Doxygen
+        run: sudo apt-get update && sudo apt-get install -y doxygen
+
+      - name: Generate Doxygen HTML
+        run: mkdir -p build/docs && doxygen Doxyfile
+
+      - name: Upload Doxygen as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: doxygen-html
+          path: build/docs/html/
+          retention-days: 14
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/docs/html

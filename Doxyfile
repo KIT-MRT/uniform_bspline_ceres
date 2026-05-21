@@ -1,3 +1,61 @@
-EXAMPLE_PATH = test
-IMAGE_PATH = ./
-USE_MDFILE_AS_MAINPAGE = ./doc/README_doxygen.md
+# ---------------------------------------------------------------------------
+# Doxygen configuration for uniform_bspline_ceres
+#
+# Generate HTML docs:
+#   mkdir -p build/docs && doxygen Doxyfile
+# Output: build/docs/html/index.html
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Project
+# ---------------------------------------------------------------------------
+PROJECT_NAME           = "uniform_bspline_ceres"
+PROJECT_NUMBER         = 1.0.0
+PROJECT_BRIEF          = "Ceres-backed optimization and fitting for uniform B-splines"
+OUTPUT_DIRECTORY       = build/docs
+
+# ---------------------------------------------------------------------------
+# Input
+# ---------------------------------------------------------------------------
+INPUT                  = include/uniform_bspline_ceres \
+                         docs/mainpage.md \
+                         tests/cpp \
+                         tests/python \
+                         bindings/python
+RECURSIVE              = YES
+FILE_PATTERNS          = *.hpp *.h *.md *.cpp *.py
+EXTENSION_MAPPING      = hpp=C++
+SOURCE_BROWSER         = YES
+
+IMAGE_PATH             = docs/res
+
+# Snippets are pulled from the C++ test sources.
+EXAMPLE_PATH           = tests/cpp tests/python bindings/python
+EXAMPLE_PATTERNS       = *.cpp *.py *.hpp
+
+# Use the mainpage as the Doxygen main page.
+USE_MDFILE_AS_MAINPAGE = docs/mainpage.md
+
+# ---------------------------------------------------------------------------
+# Output formats
+# ---------------------------------------------------------------------------
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+HTML_OUTPUT            = html
+
+# ---------------------------------------------------------------------------
+# Extraction
+# ---------------------------------------------------------------------------
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+
+# Do not extract symbols from test/example source files (they appear in the
+# Files list for browsing but their internal classes need no API docs).
+EXCLUDE_PATTERNS       = */tests/cpp/benchmark.cpp \
+                         */tests/cpp/test_helper.hpp
+
+# ---------------------------------------------------------------------------
+# Math rendering (MathJax — no LaTeX installation required)
+# ---------------------------------------------------------------------------
+USE_MATHJAX            = YES

@@ -31,7 +31,7 @@ void addToProblem(const Eigen::Ref<const Eigen::Matrix3Xd>& measurements,
                   ceres::Problem& problem) {
     std::vector<double*> parameters(spline.ControlPointsSupport);
     for (int c = 0; c < int(measurements.cols()); c++) {
-        const Eigen::Vector3d& measurement{measurements.col(c)};
+        const Eigen::Vector3d measurement = measurements.col(c);
 
         const auto data = spline.getPointData(measurement.head<2>());
         spline.fillParameterPointers(data, std::begin(parameters), std::end(parameters));

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "uniform-bspline-ceres",
+  "version": "1.0.0",
+  "dependencies": [
+    "eigen3",
+    "ceres"
+  ],
+  "features": {
+    "tests": {
+      "description": "Build C++ GTest tests",
+      "dependencies": [
+        "gtest",
+        "benchmark"
+      ]
+    },
+    "python-bindings": {
+      "description": "Build Python bindings via pybind11",
+      "dependencies": [
+        "pybind11"
+      ]
+    }
+  }
+}
