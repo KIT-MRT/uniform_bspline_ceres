@@ -3,6 +3,7 @@
 [![CI](https://github.com/KIT-MRT/uniform_bspline_ceres/actions/workflows/ci.yml/badge.svg)](https://github.com/KIT-MRT/uniform_bspline_ceres/actions/workflows/ci.yml)
 [![GitHub release](https://img.shields.io/github/v/release/KIT-MRT/uniform_bspline_ceres)](https://github.com/KIT-MRT/uniform_bspline_ceres/releases)
 [![PyPI](https://img.shields.io/pypi/v/uniform_bspline_ceres)](https://pypi.org/project/uniform_bspline_ceres/)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://kit-mrt.github.io/uniform_bspline_ceres)
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
 [![License: BSL-1.0](https://img.shields.io/badge/License-BSL_1.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt)
