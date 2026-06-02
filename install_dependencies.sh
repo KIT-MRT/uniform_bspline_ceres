@@ -20,7 +20,7 @@ done
 
 echo "Installing core dependencies..."
 sudo apt-get update -qq
-sudo apt-get install -y cmake libeigen3-dev libceres-dev
+sudo apt-get install -y cmake libeigen3-dev libboost-dev libceres-dev
 
 # uniform_bspline is header-only and not available via apt — clone and install it
 echo "Installing uniform_bspline..."
