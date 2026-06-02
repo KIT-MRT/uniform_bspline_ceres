@@ -287,3 +287,15 @@ write a minimal `py::class_<>` directly — in your own pybind11 extension:
 \snippet uniform_bspline_ceres_py.cpp CustomBinding_Example_Finder
 
 To see the full binding source see \ref uniform_bspline_ceres_py.cpp "uniform_bspline_ceres_py.cpp".
+
+### Python tests
+
+The Python binding test suite is in `tests/python/test_uniform_bspline_ceres.py`.
+It mirrors the C++ test patterns with class-based tests for all five polynomial
+degrees across all four spline families (`1d1d`, `1d3d`, `3d1d`, `3d2d`), analytic
+ground-truth accuracy tests, and `test_example_*` functions that exercise every
+named snippet in `tests/python/examples.py`.  Run with:
+
+```bash
+pytest tests/python/
+```

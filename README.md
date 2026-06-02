@@ -321,6 +321,12 @@ pip install .[test]
 pytest tests/python/
 ```
 
+The Python test suite lives in `tests/python/test_uniform_bspline_ceres.py` and
+`tests/python/examples.py`. The test file mirrors the C++ test patterns with
+class-based tests for all five polynomial degrees across all four spline families
+(`1d1d`, `1d3d`, `3d1d`, `3d2d`), analytic ground-truth accuracy tests, and
+`test_example_*` functions that exercise every named snippet in `examples.py`.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).

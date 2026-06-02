@@ -9,9 +9,6 @@ pybind11_add_module(uniform_bspline_ceres_pyext
 
 set_target_properties(uniform_bspline_ceres_pyext PROPERTIES OUTPUT_NAME uniform_bspline_ceres)
 
-target_include_directories(uniform_bspline_ceres_pyext PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
 
 target_link_libraries(uniform_bspline_ceres_pyext PRIVATE
     uniform_bspline_ceres::uniform_bspline_ceres

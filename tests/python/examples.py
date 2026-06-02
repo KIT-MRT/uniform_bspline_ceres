@@ -68,7 +68,7 @@ x3d = np.column_stack([gx.ravel(), gy.ravel(), gz.ravel()])   # shape (216, 3)
 y3d = np.exp(-0.5 * (gx.ravel() ** 2 + gy.ravel() ** 2 + gz.ravel() ** 2)).tolist()
 
 fitter_cv = ubsc.SplineFitter3d1d3(num_ctrl_x=5, num_ctrl_y=5, num_ctrl_z=5)
-fitter_cv.fit(x3d, y3d, smoothness_weight=1e-4, smoothness_order=2)
+fitter_cv.fit(x3d, y3d)
 
 # Reconstruct via uniform_bspline for evaluation
 spline_cv = ubs.UniformBSpline3d1d3(
@@ -95,7 +95,7 @@ y3d2d = np.column_stack([
 ])  # shape (216, 2)
 
 fitter_df = ubsc.SplineFitter3d2d3(num_ctrl_x=5, num_ctrl_y=5, num_ctrl_z=5)
-fitter_df.fit(x3d, y3d2d, smoothness_weight=1e-4, smoothness_order=2)
+fitter_df.fit(x3d, y3d2d)
 
 # Reconstruct via uniform_bspline for evaluation
 spline_df = ubs.UniformBSpline3d2d3(
@@ -170,105 +170,3 @@ t_opt_3d2d = finder_3d2d.find(
     initial_t=np.array([0.1, 0.1, 0.1]),
 )
 ## [PositionFinder3d2d_Python]
-
-# ---------------------------------------------------------------------------
-# 1D -> 1D joint optimisation: fit control points AND unknown positions t_i
-# ---------------------------------------------------------------------------
-
-## [JointOptimizer1d1d_Python]
-# Ground-truth: spline is y = sin(2π t), t ∈ [0, 1].
-# Simulate 30 measurements with noisy initial t guesses.
-n_obs = 30
-t_true = np.linspace(0.05, 0.95, n_obs)
-y_joint = np.sin(2 * math.pi * t_true)
-# Perturb initial positions by ±0.05
-rng = np.random.default_rng(0)
-t_init = np.clip(t_true + rng.uniform(-0.05, 0.05, n_obs), 0.0, 1.0).tolist()
-
-opt_1d1d = ubsc.SplineJointOptimizer1d1d3(num_control_points=12)
-opt_1d1d.fit(
-    y=y_joint.tolist(),
-    initial_t=t_init,
-    lower_bound=0.0,
-    upper_bound=1.0,
-    smoothness_weight=1e-4,
-    smoothness_order=2,
-)
-ctrl_joint = opt_1d1d.get_control_points()   # list of 12 doubles
-t_opt_1d1d = opt_1d1d.get_positions()        # list of 30 optimised t_i
-## [JointOptimizer1d1d_Python]
-
-# ---------------------------------------------------------------------------
-# 1D -> 3D joint optimisation: fit 3D trajectory AND arc-length parameters
-# ---------------------------------------------------------------------------
-
-## [JointOptimizer1d3d_Python]
-# Ground-truth 3D helix: x(t) = [cos(2πt), sin(2πt), t], t ∈ [0, 1].
-t_true_3d = np.linspace(0.05, 0.95, 20)
-y_helix = np.column_stack([
-    np.cos(2 * math.pi * t_true_3d),
-    np.sin(2 * math.pi * t_true_3d),
-    t_true_3d,
-])
-t_init_3d = np.clip(t_true_3d + rng.uniform(-0.05, 0.05, 20), 0.0, 1.0).tolist()
-
-opt_1d3d = ubsc.SplineJointOptimizer1d3d3(num_control_points=12)
-opt_1d3d.fit(
-    y=y_helix,
-    initial_t=t_init_3d,
-    lower_bound=0.0,
-    upper_bound=1.0,
-    smoothness_weight=1e-4,
-    smoothness_order=2,
-)
-ctrl_joint_3d = opt_1d3d.get_control_points()  # shape (12, 3)
-t_opt_1d3d  = opt_1d3d.get_positions()         # list of 20 optimised scalars
-## [JointOptimizer1d3d_Python]
-
-# ---------------------------------------------------------------------------
-# 3D -> 1D joint optimisation: fit scalar field AND 3D query positions
-# ---------------------------------------------------------------------------
-
-## [JointOptimizer3d1d_Python]
-# Ground-truth: f(t) = t_x + t_y + t_z, domain [0,1]^3.
-rng2 = np.random.default_rng(1)
-t_true_grid = rng2.uniform(0.1, 0.9, (15, 3))
-y_grid = t_true_grid.sum(axis=1).tolist()
-t_init_grid = np.clip(t_true_grid + rng2.uniform(-0.05, 0.05, t_true_grid.shape), 0.0, 1.0)
-
-opt_3d1d = ubsc.SplineJointOptimizer3d1d3(num_ctrl_x=4, num_ctrl_y=4, num_ctrl_z=4)
-opt_3d1d.fit(
-    y=y_grid,
-    initial_t=t_init_grid,
-    lower_bound=np.array([0.0, 0.0, 0.0]),
-    upper_bound=np.array([1.0, 1.0, 1.0]),
-    smoothness_weight=1e-4,
-    smoothness_order=2,
-)
-ctrl_joint_vol  = opt_3d1d.get_control_points()   # shape (4, 4, 4)
-t_opt_3d1d      = opt_3d1d.get_positions()        # shape (15, 3)
-## [JointOptimizer3d1d_Python]
-
-# ---------------------------------------------------------------------------
-# 3D -> 2D joint optimisation: fit vector field AND 3D query positions
-# ---------------------------------------------------------------------------
-
-## [JointOptimizer3d2d_Python]
-# Ground-truth: g(t) = [t_x, t_y], domain [0,1]^3.
-t_true_vf = rng2.uniform(0.1, 0.9, (15, 3))
-y_vf = t_true_vf[:, :2]
-t_init_vf = np.clip(t_true_vf + rng2.uniform(-0.05, 0.05, t_true_vf.shape), 0.0, 1.0)
-
-opt_3d2d = ubsc.SplineJointOptimizer3d2d3(num_ctrl_x=4, num_ctrl_y=4, num_ctrl_z=4)
-opt_3d2d.fit(
-    y=y_vf,
-    initial_t=t_init_vf,
-    lower_bound=np.array([0.0, 0.0, 0.0]),
-    upper_bound=np.array([1.0, 1.0, 1.0]),
-    smoothness_weight=1e-4,
-    smoothness_order=2,
-)
-ctrl_joint_vf  = opt_3d2d.get_control_points()    # shape (4, 4, 4, 2)
-t_opt_3d2d     = opt_3d2d.get_positions()         # shape (15, 3)
-## [JointOptimizer3d2d_Python]
-
