@@ -1,0 +1,14 @@
+{
+  "name": "uniform_bspline_ceres",
+  "image": "mcr.microsoft.com/devcontainers/cpp:ubuntu-24.04",
+  "onCreateCommand": "sudo apt-get update && sudo apt-get install -y cmake libeigen3-dev libboost-dev libceres-dev libgtest-dev libbenchmark-dev pybind11-dev python3-dev python3-pip python3-venv && git clone --depth 1 --branch remove_catkin_dep https://github.com/KIT-MRT/uniform_bspline.git /tmp/uniform_bspline && cmake -S /tmp/uniform_bspline -B /tmp/uniform_bspline/build -DCMAKE_BUILD_TYPE=Release && sudo cmake --install /tmp/uniform_bspline/build && rm -rf /tmp/uniform_bspline",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "ms-python.python"
+      ]
+    }
+  }
+}

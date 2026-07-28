@@ -3,7 +3,7 @@
 #include <ceres/ceres.h>
 #include <gtest/gtest.h>
 
-// See README.md for a more detailed explanation of the following example.
+// See the Doxygen documentation for a more detailed explanation of the following example.
 
 //! [Spline]
 template <typename T>
@@ -37,7 +37,7 @@ private:
 
 } // namespace
 
-TEST(UniformBSplineCeres, ExampleEvaluator1D) { // NOLINT(readability-function-size)
+TEST(UniformBSplineCeres, ExampleGenerator1D) { // NOLINT(readability-function-size)
     //! [Init]
     std::vector<double> controlPoints{6.0, 1.0, 0.0, 1.0, 2.0, 3.0, 6.0};
     Spline<double> spline(controlPoints);

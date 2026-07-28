@@ -1,69 +1,124 @@
-set(MRT_PKG_VERSION 4.0.0)
-# Modify only if you know what you are doing!
-cmake_minimum_required(VERSION 3.5.1)
-project(uniform_bspline_ceres)
+cmake_minimum_required(VERSION 3.16)
+project(uniform_bspline_ceres VERSION 1.0.0 LANGUAGES CXX)
 
-###################
-## Find packages ##
-###################
-find_package(mrt_cmake_modules REQUIRED)
-include(UseMrtStdCompilerFlags)
-include(GatherDeps)
+# ---------------------------------------------------------------------------
+# Options
+# ---------------------------------------------------------------------------
+option(BUILD_PYTHON_BINDINGS  "Build Python bindings via pybind11" OFF)
+option(BUILD_TESTS            "Build C++ unit tests"               OFF)
+option(BUILD_DOCUMENTATION    "Build Doxygen HTML documentation"   OFF)
 
-# You can add a custom.cmake in order to add special handling for this package. E.g. you can do:
-# list(REMOVE_ITEM DEPENDEND_PACKAGES <package name 1> <package name 2> ...)
-# To remove libs which cannot be found automatically. You can also "find_package" other, custom dependencies there.
-# You can also set PROJECT_INSTALL_FILES to install files that are not installed by default.
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/custom.cmake")
-    include("${CMAKE_CURRENT_SOURCE_DIR}/custom.cmake")
-endif()
+# ---------------------------------------------------------------------------
+# Dependencies
+# ---------------------------------------------------------------------------
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Ceres REQUIRED)
 
-find_package(AutoDeps REQUIRED COMPONENTS ${DEPENDEND_PACKAGES})
-
-mrt_parse_package_xml()
-
-########################
-## Add python modules ##
-########################
-# This adds a python module if located under src/{PROJECT_NAME)
-mrt_python_module_setup()
-
-mrt_glob_files(PROJECT_PYTHON_SOURCE_FILES_SRC "python_api/*.cpp")
-if (PROJECT_PYTHON_SOURCE_FILES_SRC)
-    # Add a cpp-python api library. Make sure there are no name collisions with python modules in this project
-    mrt_add_python_api( ${PROJECT_NAME}
-        FILES ${PROJECT_PYTHON_SOURCE_FILES_SRC}
+if(NOT TARGET uniform_bspline::uniform_bspline)
+    find_package(uniform_bspline 1.0.0 QUIET)
+    if(NOT uniform_bspline_FOUND)
+        message(STATUS "uniform_bspline not found — fetching via FetchContent")
+        include(FetchContent)
+        FetchContent_Declare(
+            uniform_bspline
+            GIT_REPOSITORY https://github.com/KIT-MRT/uniform_bspline.git
+            GIT_TAG        remove_catkin_dep
         )
+        # Disable uniform_bspline's own tests when used as a sub-dependency
+        set(BUILD_TESTS_SAVED ${BUILD_TESTS})
+        set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        FetchContent_MakeAvailable(uniform_bspline)
+        # Restore for this project's own BUILD_TESTS option
+        set(BUILD_TESTS ${BUILD_TESTS_SAVED} CACHE BOOL "" FORCE)
+    endif()
 endif()
 
-############################
-## Read source code files ##
-############################
-mrt_glob_files_recurse(PROJECT_HEADER_FILES_INC "include/*.h" "include/*.hpp" "include/*.cuh")
-mrt_glob_files(PROJECT_SOURCE_FILES_INC "src/*.h" "src/*.hpp" "src/*.cuh")
-mrt_glob_files(PROJECT_SOURCE_FILES_SRC "src/*.cpp" "src/*.cu")
+# ---------------------------------------------------------------------------
+# Library target (header-only interface)
+# ---------------------------------------------------------------------------
+add_library(uniform_bspline_ceres INTERFACE)
+add_library(uniform_bspline_ceres::uniform_bspline_ceres ALIAS uniform_bspline_ceres)
 
-###########
-## Build ##
-###########
-# Declare a cpp library
-mrt_add_library(${PROJECT_NAME}
-    INCLUDES ${PROJECT_HEADER_FILES_INC} ${PROJECT_SOURCE_FILES_INC}
-    SOURCES ${PROJECT_SOURCE_FILES_SRC}
+target_include_directories(uniform_bspline_ceres
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/uniform_bspline_ceres>
+        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:include/uniform_bspline_ceres>
+)
+
+target_link_libraries(uniform_bspline_ceres
+    INTERFACE
+        uniform_bspline::uniform_bspline
+        Eigen3::Eigen
+        Ceres::ceres
+)
+
+target_compile_features(uniform_bspline_ceres INTERFACE cxx_std_17)
+
+# ---------------------------------------------------------------------------
+# Python bindings
+# ---------------------------------------------------------------------------
+if(BUILD_PYTHON_BINDINGS)
+    add_subdirectory(bindings/python)
+endif()
+
+# ---------------------------------------------------------------------------
+# Documentation
+# ---------------------------------------------------------------------------
+if(BUILD_DOCUMENTATION)
+    find_package(Doxygen REQUIRED)
+    add_custom_target(docs
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/build/docs
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Generating Doxygen HTML documentation"
+        VERBATIM
     )
-
-#############
-## Install ##
-#############
-# Install all targets, headers by default and scripts and other files if specified (folders or files).
-# This command also exports libraries and config files for dependent packages and this supersedes catkin_package.
-mrt_install(PROGRAMS scripts FILES res data ${PROJECT_INSTALL_FILES})
-
-#############
-## Testing ##
-#############
-# Add test targets for cpp and python tests
-if (CATKIN_ENABLE_TESTING)
-    mrt_add_tests(test)
-    mrt_add_nosetests(test)
 endif()
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests/cpp)
+endif()
+
+# ---------------------------------------------------------------------------
+# Install
+# ---------------------------------------------------------------------------
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+install(TARGETS uniform_bspline_ceres
+    EXPORT uniform_bspline_ceresTargets
+)
+
+install(DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(EXPORT uniform_bspline_ceresTargets
+    FILE uniform_bspline_ceresTargets.cmake
+    NAMESPACE uniform_bspline_ceres::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/uniform_bspline_ceres
+)
+
+configure_package_config_file(
+    cmake/uniform_bspline_ceresConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/uniform_bspline_ceresConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/uniform_bspline_ceres
+)
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/uniform_bspline_ceresConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/uniform_bspline_ceresConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/uniform_bspline_ceresConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/uniform_bspline_ceres
+)

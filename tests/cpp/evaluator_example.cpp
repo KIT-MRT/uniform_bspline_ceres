@@ -3,7 +3,7 @@
 #include <ceres/ceres.h>
 #include <gtest/gtest.h>
 
-// See README.md for a more detailed explanation of the following example.
+// See the Doxygen documentation for a more detailed explanation of the following example.
 
 //! [Spline]
 using Spline = ubs::UniformBSpline<double, 3, double, double, std::vector<double>>;

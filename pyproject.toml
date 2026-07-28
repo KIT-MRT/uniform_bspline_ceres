@@ -1,0 +1,30 @@
+[build-system]
+requires = ["scikit-build-core>=0.9", "pybind11>=2.11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "uniform_bspline_ceres"
+version = "1.0.0"
+description = "Ceres-backed optimization and fitting for uniform B-splines — Python bindings."
+license = { text = "BSL-1.0" }
+requires-python = ">=3.8"
+authors = [{name = "Johannes Beck", email = "johannes.beck@kit.edu"}]
+dependencies = [
+    "uniform_bspline @ git+https://github.com/KIT-MRT/uniform_bspline.git@remove_catkin_dep",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.urls]
+Homepage = "https://github.com/KIT-MRT/uniform_bspline_ceres"
+Documentation = "https://kit-mrt.github.io/uniform_bspline_ceres"
+Source = "https://github.com/KIT-MRT/uniform_bspline_ceres"
+Tracker = "https://github.com/KIT-MRT/uniform_bspline_ceres/issues"
+
+[tool.scikit-build]
+cmake.build-type = "Release"
+
+[tool.scikit-build.cmake.define]
+BUILD_PYTHON_BINDINGS = "ON"
+BUILD_TESTS = "OFF"
