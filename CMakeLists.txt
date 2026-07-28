@@ -14,21 +14,23 @@ option(BUILD_DOCUMENTATION    "Build Doxygen HTML documentation"   OFF)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(Ceres REQUIRED)
 
-find_package(uniform_bspline 1.0.0 QUIET)
-if(NOT uniform_bspline_FOUND)
-    message(STATUS "uniform_bspline not found — fetching via FetchContent")
-    include(FetchContent)
-    FetchContent_Declare(
-        uniform_bspline
-        GIT_REPOSITORY https://github.com/KIT-MRT/uniform_bspline.git
-        GIT_TAG        remove_catkin_dep
-    )
-    # Disable uniform_bspline's own tests when used as a sub-dependency
-    set(BUILD_TESTS_SAVED ${BUILD_TESTS})
-    set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(uniform_bspline)
-    # Restore for this project's own BUILD_TESTS option
-    set(BUILD_TESTS ${BUILD_TESTS_SAVED} CACHE BOOL "" FORCE)
+if(NOT TARGET uniform_bspline::uniform_bspline)
+    find_package(uniform_bspline 1.0.0 QUIET)
+    if(NOT uniform_bspline_FOUND)
+        message(STATUS "uniform_bspline not found — fetching via FetchContent")
+        include(FetchContent)
+        FetchContent_Declare(
+            uniform_bspline
+            GIT_REPOSITORY https://github.com/KIT-MRT/uniform_bspline.git
+            GIT_TAG        remove_catkin_dep
+        )
+        # Disable uniform_bspline's own tests when used as a sub-dependency
+        set(BUILD_TESTS_SAVED ${BUILD_TESTS})
+        set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        FetchContent_MakeAvailable(uniform_bspline)
+        # Restore for this project's own BUILD_TESTS option
+        set(BUILD_TESTS ${BUILD_TESTS_SAVED} CACHE BOOL "" FORCE)
+    endif()
 endif()
 
 # ---------------------------------------------------------------------------
